@@ -29,3 +29,4 @@ def double_number(number: int):
         "operation": "double",
         "result": result
     }
+
