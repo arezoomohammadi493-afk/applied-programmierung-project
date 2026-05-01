@@ -155,9 +155,3 @@ def delete_note(note_id: int):
         detail=f"Note with ID {note_id} not found"
     )
 
-@app.get("/queryparameters")
-def query_parameters(param1: str = None, param2: int = None ) -> dict:
-    return {
-       "param1": param1,
-        "param2": param2 
-    }
