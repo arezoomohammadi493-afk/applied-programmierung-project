@@ -20,12 +20,14 @@ class NoteCreate(BaseModel):
     title: str
     content: str
     category: str
+    tags: list[str] = []
 
 class Note(BaseModel):
     id: int
     title: str
     content: str
     category: str
+    tags: list[str] = []
     created_at: str
 
 NOTES_FILE = Path("data/notes.json")
@@ -86,10 +88,42 @@ def list_notes() -> list[Note]:
 
 
 @app.get("/notes")
-def list_notes() -> list[Note]:
-    """Get a list of all notes"""
+def list_notes(
+    category: str = None,
+    search: str = None,
+    tag: str = None
+) -> list[Note]:
+    """
+    List notes with optional filters:
+    - category: filter by category
+    - search: search in title and content
+    - tag: filter by tag
+    """
     notes_db, _ = load_notes()
-    return notes_db
+
+    filtered_notes = []
+
+    for note in notes_db:
+        # Filter by category
+        if category and note.category != category:
+            continue
+
+        # Filter by search text in title or content
+        if search:
+            search_lower = search.lower()
+            title_match = search_lower in note.title.lower()
+            content_match = search_lower in note.content.lower()
+
+            if not (title_match or content_match):
+                continue
+
+        # Filter by tag
+        if tag and tag not in note.tags:
+            continue
+
+        filtered_notes.append(note)
+
+    return filtered_notes
 
 
 @app.get("/notes/category/{category}")
