@@ -156,6 +156,19 @@ def get_notes_stats():
     }
 
 
+@app.get("/tags")
+def list_tags() -> list[str]:
+    """Get all unique tags from all notes"""
+    notes_db, _ = load_notes()
+
+    all_tags = set()
+
+    for note in notes_db:
+        for tag in note.tags:
+            all_tags.add(tag)
+
+    return sorted(list(all_tags))
+
 @app.get("/notes/{note_id}")
 def get_note(note_id: int) -> Note:
     """Get a specific note by ID"""
@@ -198,16 +211,16 @@ def update_note(note_id: int, note_update: NoteCreate) -> Note:
     )
 
 
-@app.delete("/notes/{note_id}")
+@app.delete("/notes/{note_id}", status_code=204)
 def delete_note(note_id: int):
-    """Delete a note by ID"""
+    """Delete a note"""
     notes_db, _ = load_notes()
 
     for i, note in enumerate(notes_db):
         if note.id == note_id:
             notes_db.pop(i)
             save_notes(notes_db)
-            return {"message": "Note deleted"}
+            return
 
     raise HTTPException(
         status_code=404,
