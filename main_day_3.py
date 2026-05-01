@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from collections import Counter
 from typing import Optional
+from sqlmodel import SQLModel, Field, Relationship, Session, create_engine, select
 
 
 
@@ -39,36 +40,121 @@ class NoteUpdate(BaseModel):
     category: Optional[str] = None
     tags: Optional[list[str]] = None
 
+class NoteTagLink(SQLModel, table=True):
+    note_id: Optional[int] = Field(default=None, foreign_key="notes.id", primary_key=True)
+    tag_id: Optional[int] = Field(default=None, foreign_key="tags.id", primary_key=True)
+
+
+class NoteDB(SQLModel, table=True):
+    __tablename__ = "notes"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str
+    content: str
+    category: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    tags: list["TagDB"] = Relationship(back_populates="notes", link_model=NoteTagLink)
+
+
+class TagDB(SQLModel, table=True):
+    __tablename__ = "tags"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(unique=True, index=True)
+
+    notes: list[NoteDB] = Relationship(back_populates="tags", link_model=NoteTagLink)
+
+
+DATABASE_URL = "sqlite:///notes.db"
+
+engine = create_engine(DATABASE_URL, echo=True)
+
+
+def create_db_and_tables():
+    """Create database tables"""
+    SQLModel.metadata.create_all(engine)
+
+def db_note_to_note(note_db: NoteDB) -> Note:
+    """Convert database note to API note"""
+    return Note(
+        id=note_db.id,
+        title=note_db.title,
+        content=note_db.content,
+        category=note_db.category,
+        tags=[tag.name for tag in note_db.tags],
+        created_at=note_db.created_at.isoformat()
+    )
+
+
 
 NOTES_FILE = Path("data/notes.json")
 
 
 def load_notes():
-    """Load notes from JSON file and return notes list and next ID counter"""
-    notes_db = []
-    notes_id_counter = 1
+    """Load notes from SQLite database and return notes list and next ID counter"""
+    create_db_and_tables()
 
-    if NOTES_FILE.exists():
-        with open(NOTES_FILE, 'r') as f:
-            data = json.load(f)
-            notes_db = [Note(**note) for note in data]
+    with Session(engine) as session:
+        notes_db = session.exec(select(NoteDB)).all()
 
-            # Set counter to max ID + 1
-            if notes_db:
-                notes_id_counter = max(note.id for note in notes_db) + 1
+        notes = []
+        for note_db in notes_db:
+            notes.append(db_note_to_note(note_db))
 
-    return notes_db, notes_id_counter
+        if notes:
+            next_id_counter = max(note.id for note in notes) + 1
+        else:
+            next_id_counter = 1
+
+        return notes, next_id_counter
 
 
-def save_notes(notes_db):
-    """Save notes to JSON file after each change"""
-    # Ensure data directory exists
-    NOTES_FILE.parent.mkdir(parents=True, exist_ok=True)
+def save_notes(notes: list[Note]):
+    """Save notes to SQLite database"""
+    create_db_and_tables()
 
-    with open(NOTES_FILE, 'w') as f:
-        # Convert Note objects to dicts
-        notes_data = [note.dict() for note in notes_db]
-        json.dump(notes_data, f, indent=2)
+    with Session(engine) as session:
+        # Clear existing link table, notes and tags
+        existing_notes = session.exec(select(NoteDB)).all()
+        for note_db in existing_notes:
+            session.delete(note_db)
+
+        existing_tags = session.exec(select(TagDB)).all()
+        for tag_db in existing_tags:
+            session.delete(tag_db)
+
+        session.commit()
+
+        # Insert notes again
+        for note in notes:
+            note_db = NoteDB(
+                id=note.id,
+                title=note.title,
+                content=note.content,
+                category=note.category,
+                created_at=datetime.fromisoformat(note.created_at)
+            )
+
+            tag_objects = []
+
+            for tag_name in note.tags:
+                tag_db = session.exec(
+                    select(TagDB).where(TagDB.name == tag_name)
+                ).first()
+
+                if tag_db is None:
+                    tag_db = TagDB(name=tag_name)
+                    session.add(tag_db)
+                    session.commit()
+                    session.refresh(tag_db)
+
+                tag_objects.append(tag_db)
+
+            note_db.tags = tag_objects
+            session.add(note_db)
+
+        session.commit()
 
 
 @app.post("/notes", status_code=201)
@@ -133,7 +219,7 @@ def list_notes(
 
         if created_before and note.created_at > created_before:
             continue
-        
+
         filtered_notes.append(note)
 
     return filtered_notes
