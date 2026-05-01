@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+from collections import Counter
+from typing import Optional
 
 
 
@@ -30,6 +32,12 @@ class Note(BaseModel):
     category: str
     tags: list[str] = []
     created_at: str
+
+class NoteUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[list[str]] = None
 
 
 NOTES_FILE = Path("data/notes.json")
@@ -119,6 +127,74 @@ def list_notes(
             continue
 
         filtered_notes.append(note)
+
+    return filtered_notes
+
+
+@app.get("/notes/stats")
+def get_note_stats():
+    """
+    Get statistics about all notes:
+    - total number of notes
+    - notes per category
+    - top 5 most used tags
+    - number of unique tags
+    """
+    notes_db, _ = load_notes()
+
+    total_notes = len(notes_db)
+
+    category_counter = Counter()
+    tag_counter = Counter()
+
+    for note in notes_db:
+        # Count categories
+        category_counter[note.category] += 1
+
+        # Count tags
+        for tag in note.tags:
+            tag_counter[tag] += 1
+
+    top_tags = []
+
+    for tag, count in tag_counter.most_common(5):
+        top_tags.append({
+            "tag": tag,
+            "count": count
+        })
+
+    return {
+        "total_notes": total_notes,
+        "by_category": dict(category_counter),
+        "top_tags": top_tags,
+        "unique_tags_count": len(tag_counter)
+    }
+
+
+
+@app.get("/categories")
+def list_categories() -> list[str]:
+    """Get all unique categories from all notes"""
+    notes_db, _ = load_notes()
+
+    categories = set()
+
+    for note in notes_db:
+        categories.add(note.category)
+
+    return sorted(categories)
+
+
+@app.get("/categories/{category_name}/notes")
+def get_notes_by_category_resource(category_name: str) -> list[Note]:
+    """Get all notes in a specific category"""
+    notes_db, _ = load_notes()
+
+    filtered_notes = []
+
+    for note in notes_db:
+        if note.category == category_name:
+            filtered_notes.append(note)
 
     return filtered_notes
 
@@ -222,6 +298,37 @@ def update_note(note_id: int, note_update: NoteCreate) -> Note:
         status_code=404,
         detail=f"Note with ID {note_id} not found"
     )
+
+
+@app.patch("/notes/{note_id}")
+def partial_update_note(note_id: int, note_update: NoteUpdate) -> Note:
+    """
+    Partially update a note.
+
+    PATCH updates only the fields that are provided.
+    """
+    notes_db, _ = load_notes()
+
+    for i, note in enumerate(notes_db):
+        if note.id == note_id:
+            if note_update.title is not None:
+                note.title = note_update.title
+
+            if note_update.content is not None:
+                note.content = note_update.content
+
+            if note_update.category is not None:
+                note.category = note_update.category
+
+            if note_update.tags is not None:
+                note.tags = note_update.tags
+
+            notes_db[i] = note
+            save_notes(notes_db)
+            return note
+
+    raise HTTPException(status_code=404, detail="Note not found")
+
 
 
 @app.delete("/notes/{note_id}", status_code=204)
