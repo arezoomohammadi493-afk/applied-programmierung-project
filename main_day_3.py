@@ -22,6 +22,7 @@ class NoteCreate(BaseModel):
     category: str
     tags: list[str] = []
 
+
 class Note(BaseModel):
     id: int
     title: str
@@ -29,6 +30,7 @@ class Note(BaseModel):
     category: str
     tags: list[str] = []
     created_at: str
+
 
 NOTES_FILE = Path("data/notes.json")
 
@@ -45,7 +47,7 @@ def load_notes():
 
             # Set counter to max ID + 1
             if notes_db:
-                note_id_counter = max(note.id for note in notes_db) + 1
+                notes_id_counter = max(note.id for note in notes_db) + 1
 
     return notes_db, notes_id_counter
 
@@ -72,6 +74,7 @@ def create_note(note: NoteCreate) -> Note:
         title=note.title,
         content=note.content,
         category=note.category,
+        tags=note.tags,
         created_at=datetime.now(timezone.utc).isoformat()
     )
 
@@ -79,12 +82,6 @@ def create_note(note: NoteCreate) -> Note:
     save_notes(notes_db)
     
     return new_note
-
-@app.get("/notes")
-def list_notes() -> list[Note]:
-    """Get a list of all notes"""
-    notes_db, _ = load_notes()
-    return notes_db
 
 
 @app.get("/notes")
@@ -139,6 +136,7 @@ def get_notes_by_category(category: str) -> list[Note]:
 
     return filtered_notes
 
+
 @app.get("/notes/stats")
 def get_notes_stats():
     """Get statistics about notes"""
@@ -158,7 +156,6 @@ def get_notes_stats():
     }
 
 
-
 @app.get("/notes/{note_id}")
 def get_note(note_id: int) -> Note:
     """Get a specific note by ID"""
@@ -172,6 +169,34 @@ def get_note(note_id: int) -> Note:
         status_code=404,
         detail=f"Note with ID {note_id} not found"
     )
+
+
+@app.put("/notes/{note_id}")
+def update_note(note_id: int, note_update: NoteCreate) -> Note:
+    """Update an existing note"""
+    notes_db, _ = load_notes()
+
+    for i, note in enumerate(notes_db):
+        if note.id == note_id:
+            updated_note = Note(
+                id=note.id,
+                title=note_update.title,
+                content=note_update.content,
+                category=note_update.category,
+                tags=note_update.tags,
+                created_at=note.created_at
+            )
+
+            notes_db[i] = updated_note
+            save_notes(notes_db)
+
+            return updated_note
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"Note with ID {note_id} not found"
+    )
+
 
 @app.delete("/notes/{note_id}")
 def delete_note(note_id: int):
@@ -191,7 +216,7 @@ def delete_note(note_id: int):
 
 
 @app.get("/queryparameters")
-def query_parameters(param1: str = None, param2: int = None ) -> dict:
+def query_parameters(param1: str = None, param2: int = None) -> dict:
 
     print("start query_parameters")
     print(param1, param2)
@@ -205,7 +230,7 @@ def query_parameters(param1: str = None, param2: int = None ) -> dict:
     Returns a JSON onject with the provided parameters
     
     """
-    namen = [ 'martin', 'sophia', 'michael', 'maryam', 'arezoo', 'armin']
+    namen = ['martin', 'sophia', 'michael', 'maryam', 'arezoo', 'armin']
 
     if not param1:
         return {"namen": namen}
@@ -216,8 +241,7 @@ def query_parameters(param1: str = None, param2: int = None ) -> dict:
             namen_gefiltert.append(name)
 
     return {
-       "param1": param1,
+        "param1": param1,
         "param2": param2, 
         "namen": namen_gefiltert
     }
-
