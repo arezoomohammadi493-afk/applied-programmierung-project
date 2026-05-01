@@ -96,7 +96,9 @@ def create_note(note: NoteCreate) -> Note:
 def list_notes(
     category: str = None,
     search: str = None,
-    tag: str = None
+    tag: str = None,
+    created_after: str = None,
+    created_before: str = None
 ) -> list[Note]:
     """
     List notes with optional filters:
@@ -125,7 +127,13 @@ def list_notes(
         # Filter by tag
         if tag and tag not in note.tags:
             continue
+        # Filter by creation date
+        if created_after and note.created_at < created_after:
+            continue
 
+        if created_before and note.created_at > created_before:
+            continue
+        
         filtered_notes.append(note)
 
     return filtered_notes
