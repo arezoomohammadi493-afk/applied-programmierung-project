@@ -169,6 +169,19 @@ def list_tags() -> list[str]:
 
     return sorted(list(all_tags))
 
+@app.get("/tags/{tag_name}/notes")
+def get_notes_by_tag(tag_name: str) -> list[Note]:
+    """Get all notes with a specific tag"""
+    notes_db, _ = load_notes()
+
+    filtered = []
+
+    for note in notes_db:
+        if tag_name in note.tags:
+            filtered.append(note)
+
+    return filtered
+
 @app.get("/notes/{note_id}")
 def get_note(note_id: int) -> Note:
     """Get a specific note by ID"""
