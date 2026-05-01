@@ -109,6 +109,90 @@ def db_note_to_note(note_db: NoteDB) -> Note:
 
 NOTES_FILE = Path("data/notes.json")
 
+def migrate_json_to_db():
+    """Migrate existing notes from JSON file to SQLite database"""
+    create_db_and_tables()
+
+    if not NOTES_FILE.exists():
+        return
+
+    with open(NOTES_FILE, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    if isinstance(data, dict):
+        json_notes = data.get("notes", [])
+    elif isinstance(data, list):
+        json_notes = data
+    else:
+        json_notes = []
+
+    with Session(engine) as session:
+        existing_notes = session.exec(select(NoteDB)).all()
+        existing_keys = {
+            (note.title, note.content, note.created_at.isoformat())
+            for note in existing_notes
+        }
+
+        for note_data in json_notes:
+            created_at_text = note_data.get("created_at")
+
+            if created_at_text:
+                created_at_value = datetime.fromisoformat(
+                    created_at_text.replace("Z", "+00:00")
+                )
+            else:
+                created_at_value = datetime.now(timezone.utc)
+
+            note_key = (
+                note_data["title"],
+                note_data["content"],
+                created_at_value.isoformat()
+            )
+
+            if note_key in existing_keys:
+                continue
+
+            db_note = NoteDB(
+                title=note_data["title"],
+                content=note_data["content"],
+                category=note_data["category"],
+                created_at=created_at_value
+            )
+
+            tag_objects = []
+            seen_tags = set()
+
+            for tag_name in note_data.get("tags", []):
+                tag_name_clean = tag_name.strip()
+
+                if not tag_name_clean or tag_name_clean in seen_tags:
+                    continue
+
+                seen_tags.add(tag_name_clean)
+
+                existing_tag = session.exec(
+                    select(TagDB).where(TagDB.name == tag_name_clean)
+                ).first()
+
+                if existing_tag:
+                    tag_objects.append(existing_tag)
+                else:
+                    new_tag = TagDB(name=tag_name_clean)
+                    session.add(new_tag)
+                    tag_objects.append(new_tag)
+
+            db_note.tags = tag_objects
+            session.add(db_note)
+
+        session.commit()
+
+@app.on_event("startup")
+def on_startup():
+    """Create database tables and migrate existing JSON notes"""
+    create_db_and_tables()
+    migrate_json_to_db()
+
+
 
 def load_notes():
     """Load notes from SQLite database and return notes list and next ID counter"""
