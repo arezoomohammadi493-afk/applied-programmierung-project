@@ -139,27 +139,80 @@ _Explain how you overcame the challenges or what help you needed._
 ### Day 3
 
 #### 1. ✅ What did I accomplish?
+-Die neue Präsentationsdatei mit Git zum Repository hinzugefügt, committed und erfolgreich auf GitHub gepusht.
 
+-REST API Design:
+ Wichtige Erkenntnis: Bei REst APIs stegt die Aktion nicht direkt in der URL, sondern wird über die HTTP-Methode bestimmt:
+- `GET` zum Lesen von Daten
+- `POST` zum Erstellen neuer Daten
+- `PUT` zum Aktualisieren bestehender Daten
+- `DELETE` zum Löschen von Daten
 
+-Bei REST APIs beschreibt die URL nur die Ressource, die HTTP-Methode bestimmt die Aktion, und der HTTP-Status-Code zeigt, ob die Anfrage erfolgreich war oder welcher Fehler passiert ist.
 
+-`Path Parameter` sind feste Bestandteile der URL, werden zur Identifikation bestimmter Ressourcen genutzt und die Reihenfolge der Endpoints ist wichtig, weil allgemeinere Routen wie "/test/{wert}" spezifische routen wie "/test/123" abfangen können.
 
+-FASTAPI prüft und konventiert Path Parameters automatisch. Dadurch muss man nicht selbst konttrollieren, ob zum Beispiel eine ID wirklich eine Zahl ist.
+
+-`Query Parameters` stehen nach dem ? in der URL, sind meistens optional und werden verwendet, um Ergebnisse zu filtern, zu suchen, zu sortieren oder mehrere Bedingungen wie semster, min_ects und search miteinander zu kombinieren.
+
+-Der bestehende `GET /notes` Endpoint wurde erweitert, sodass Notizen jetzt mit optionalen Query Parameters nach `category`, `search` und `tag` gefiltert werden können; dabei werden nicht passende Notizen mit `continue` übersprungen und nur passende Ergebnisse zurückgegeben.
+
+-Der `DELETE /notes/{note_id}` Endpoint wurde angepasst und getestet, sodass eine bestehende Notiz anhand ihrer ID gelöscht wird; bei erfolgreichem Löschen gibt die API den Status Code `204 No Content` zurück, während bei einer nicht vorhandenen ID ein `404 Not Found` Fehler erscheint.
+
+-Der neue `GET /tags` Endpoint wurde implementiert und getestet; er sammelt alle Tags aus den gespeicherten Notizen, entfernt doppelte Einträge mithilfe eines Sets und gibt die eindeutigen Tags als sortierte Liste zurück.
+
+-Der Endpoint `GET /tags/{tag_name}/notes` wurde hinzugefügt, um alle Notizen mit einem bestimmten Tag abzurufen. Dafür werden alle gespeicherten Notizen geladen, nach dem angegebenen Tag durchsucht und nur die passenden Notizen als Liste zurückgegeben.
+
+Homework:
+
+-Der `GET /notes`Endpoint wurde mit mehreren Query-Parametern gleichzeitig getestet, sodass category, search und tag gemeinsam als AND-Filter funktionieren.
+
+-Der neue Endpoint `GET /notes/stats` wurde erstellt und getestet, um Statistiken über die gespeicherten Notes auszugeben, darunter die Gesamtanzahl, Notes pro Kategorie, die Top 5 Tags und die Anzahl eindeutiger Tags.
+
+-Der neue Categories-Resource-Endpoint wurde erstellt und getestet, um alle eindeutigen Kategorien über `/categories` auszugeben und über `/categories/{category_name}/notes` alle Notes einer bestimmten Kategorie abzurufen.
+
+-Der neue PATCH `/notes/{note_id}`Endpoint wurde implementiert und getestet, um einzelne Felder einer Note teilweise zu aktualisieren, ohne die gesamte Note ersetzen zu müssen.
+
+-Der bestehende GET /notes-Endpoint wurde um die optionalen Query-Parameter created_after und created_before erweitert, damit Notes zusätzlich nach einem Datumsbereich gefiltert werden können.
+
+-Der bisherige JSON-basierte Speicher wurde durch eine SQLite-Datenbank mit SQLModel ersetzt. Dafür wurden Datenbank-Modelle für Notes, Tags und die Verbindung zwischen Notes und Tags erstellt. Anschließend wurden die Speicherfunktionen so angepasst, dass Notes aus der Datenbank geladen und dort gespeichert werden.
+
+-Der bisherige JSON-basierte Speicher wurde auf eine SQLite-Datenbank mit SQLModel umgestellt. Dafür wurden Datenbank-Modelle für Notes, Tags und die Verbindung zwischen Notes und Tags erstellt. Danach wurden die wichtigsten Endpoints Schritt für Schritt auf Datenbank-Sessions mit SessionDep umgebaut und getestet: POST, GET, PATCH, PUT, DELETE, /notes/stats, /categories und /categories/{category_name}/notes.
 
 
 ---
 
 #### 2. 🚧 What challenges did I face?
+-Beim Testen des Tag-Endpunkts habe ich nach dem Tag `sport` gesucht, aber die erwartete Note nicht gefunden, obwohl sie mit einem Sport-Tag markiert war. Zuerst war mir nicht klar, woran das Problem lag.
 
+Homework:
 
+-Beim Testen kamen zuerst leere Ergebnisse ([]) zurück, weil die vorhandenen Notes nicht zu den geforderten Filterwerten wie work, urgent, personal, family und vacation passten.
 
+-Eine Herausforderung war, dass ich die Counter-Dokumentation zuerst verstehen musste, bevor ich sie im Code richtig anwenden konnte. Das hat mehr Zeit gekostet als erwartet.
 
+-Beim Testen wurde zuerst versehentlich ein vollständiger Body bzw. ungültiges JSON mit einem Komma am Ende gesendet, wodurch nicht klar erkennbar war, ob PATCH wirklich nur einzelne Felder aktualisiert.
+
+-Es war schwer zu verstehen, wie die gespeicherten created_at-Werte mit den neuen Datumsfiltern verglichen werden können, ohne eine komplizierte Datumskonvertierung einzubauen.
+
+-Eine Herausforderung war, die bestehende API-Struktur beizubehalten, obwohl die Speicherung intern von JSON auf SQLite umgestellt wurde. Besonders wichtig war dabei, die Tags korrekt als eigene Datenbankeinträge zu speichern und trotzdem im API-Response weiterhin als einfache Liste auszugeben.
 
 
 ---
 
 #### 3. 💡 How did I overcome them?
+-Um das Problem zu lösen, habe ich eine weitere Test-Note erstellt und den Tag `sport` verwendet. Danach habe ich den Endpoint `GET /tags/{tag_name}/notes` erneut getestet und die neue Note gefunden. Nach längerem Prüfen wurde klar, dass die erste Note nicht angezeigt wurde, weil der ursprüngliche Tag `Sport` mit großem Anfangsbuchstaben gespeichert war und der Endpoint Groß- und Kleinschreibung unterscheidet.
 
+Homework:
 
+-Ich habe zuerst die gespeicherten Notes überprüft und danach passende Test-Notes erstellt, damit die Kombinationen aus category, search und tag korrekt getestet werden konnten.
 
+-Ich habe Gemini gefragt, ob es mir nur die wichtigsten und notwendigen Punkte aus der Counter-Dokumentation für Task 2 erklären kann. Danach habe ich verstanden, wie Counter zum automatischen Zählen von Kategorien und Tags verwendet wird und wie man mit most_common(5) die fünf häufigsten Tags ausgibt. Prompt, den ich Gemini gegeben habe: "Can you explain only the necessary parts of the Python Counter documentation that I need for this task? I need to create a /notes/stats endpoint that counts total notes, notes per category, top 5 most used tags, and the number of unique tags. Please explain it simply with a small example."
+
+-Beim Testen wurde zuerst versehentlich ein vollständiger Body bzw. ungültiges JSON mit einem Komma am Ende gesendet, wodurch nicht klar erkennbar war, ob PATCH wirklich nur einzelne Felder aktualisiert.
+
+-Ich habe zuerst die SQLModel-Struktur vorbereitet und anschließend Hilfsfunktionen verwendet, um Datenbank-Objekte wieder in normale API-Objekte umzuwandeln. Danach habe ich alle wichtigen Endpoints getestet: POST, GET, PATCH, PUT, DELETE, /notes/stats und /categories.
 
 
 
