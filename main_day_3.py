@@ -5,8 +5,7 @@ import json
 from pathlib import Path
 from collections import Counter
 from typing import Optional, Annotated
-from sqlmodel import SQLModel, Field, Relationship, Session, create_engine, select
-
+from sqlmodel import SQLModel, Field, Relationship, Session, create_engine, select, or_, col
 
 
 app = FastAPI(
@@ -224,7 +223,6 @@ def create_note(note: NoteCreate, session: SessionDep) -> NoteResponse:
         created_at=db_note.created_at.isoformat()
     )
 
-
 @app.get("/notes")
 def list_notes(
     session: SessionDep,
@@ -234,52 +232,52 @@ def list_notes(
     created_after: str = None,
     created_before: str = None
 ) -> list[NoteResponse]:
-    """List notes with optional filters"""
-    notes_db = session.exec(select(NoteDB)).all()
+    """List notes with optional filters using database queries"""
 
-    filtered_notes = []
+    statement = select(NoteDB)
 
-    for note in notes_db:
-        # Filter by category
-        if category and note.category != category:
-            continue
+    # Filter by category
+    if category:
+        statement = statement.where(NoteDB.category == category)
 
-        # Filter by search text in title or content
-        if search:
-            search_lower = search.lower()
-            title_match = search_lower in note.title.lower()
-            content_match = search_lower in note.content.lower()
-
-            if not (title_match or content_match):
-                continue
-
-        # Filter by tag
-        note_tags = [tag_db.name for tag_db in note.tags]
-
-        if tag and tag not in note_tags:
-            continue
-
-        # Filter by creation date
-        created_at_string = note.created_at.isoformat()
-
-        if created_after and created_at_string < created_after:
-            continue
-
-        if created_before and created_at_string > created_before:
-            continue
-
-        filtered_notes.append(
-            NoteResponse(
-                id=note.id,
-                title=note.title,
-                content=note.content,
-                category=note.category,
-                tags=note_tags,
-                created_at=created_at_string
+    # Filter by search text in title or content
+    if search:
+        search_lower = search.lower()
+        statement = statement.where(
+            or_(
+                col(NoteDB.title).ilike(f"%{search_lower}%"),
+                col(NoteDB.content).ilike(f"%{search_lower}%")
             )
         )
 
-    return filtered_notes
+    # Filter by tag
+    if tag:
+        statement = statement.join(NoteDB.tags).where(TagDB.name == tag)
+
+    # Filter by creation date
+    if created_after:
+        statement = statement.where(
+            NoteDB.created_at >= datetime.fromisoformat(created_after)
+        )
+
+    if created_before:
+        statement = statement.where(
+            NoteDB.created_at <= datetime.fromisoformat(created_before)
+        )
+
+    notes = session.exec(statement).all()
+
+    return [
+        NoteResponse(
+            id=note.id,
+            title=note.title,
+            content=note.content,
+            category=note.category,
+            tags=[tag.name for tag in note.tags],
+            created_at=note.created_at.isoformat()
+        )
+        for note in notes
+    ]
 
 
 @app.get("/notes/stats")
@@ -413,30 +411,38 @@ def get_note_stats(session: SessionDep):
 
 
 @app.get("/tags")
-def list_tags() -> list[str]:
-    """Get all unique tags from all notes"""
-    notes_db, _ = load_notes()
+def list_tags(session: SessionDep) -> list[str]:
+    """Get all unique tags from the Tag table"""
+    statement = select(TagDB)
+    tags = session.exec(statement).all()
 
-    all_tags = set()
+    return sorted([tag.name for tag in tags])
 
-    for note in notes_db:
-        for tag in note.tags:
-            all_tags.add(tag)
-
-    return sorted(list(all_tags))
 
 @app.get("/tags/{tag_name}/notes")
-def get_notes_by_tag(tag_name: str) -> list[Note]:
+def get_notes_by_tag(
+    tag_name: str,
+    session: SessionDep
+) -> list[NoteResponse]:
     """Get all notes with a specific tag"""
-    notes_db, _ = load_notes()
+    statement = select(TagDB).where(TagDB.name == tag_name)
+    tag = session.exec(statement).first()
 
-    filtered = []
+    if not tag:
+        return []
 
-    for note in notes_db:
-        if tag_name in note.tags:
-            filtered.append(note)
+    return [
+        NoteResponse(
+            id=note.id,
+            title=note.title,
+            content=note.content,
+            category=note.category,
+            tags=[tag_item.name for tag_item in note.tags],
+            created_at=note.created_at.isoformat()
+        )
+        for note in tag.notes
+    ]
 
-    return filtered
 
 @app.get("/notes/{note_id}")
 def get_note(note_id: int, session: SessionDep) -> NoteResponse:
