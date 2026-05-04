@@ -315,3 +315,43 @@ def test_patch_note():
     assert data["category"] == created_note["category"]
     assert set(data["tags"]) == set(created_note["tags"])
 
+
+def test_list_tags():
+    """Bonus: Test listing all tags."""
+    response = requests.get(f"{BASE_URL}/tags")
+
+    assert response.status_code == 200
+
+    tags = response.json()
+
+    assert isinstance(tags, list)
+
+    for tag in tags:
+        assert isinstance(tag, str)
+
+
+def test_get_notes_by_tag():
+    """Bonus: Test getting notes by tag name."""
+    unique_tag = f"bonus-tag-{uuid4().hex[:8]}"
+
+    note_data = make_note_data()
+    note_data["tags"] = [unique_tag, "bonus-test"]
+
+    create_response = requests.post(f"{BASE_URL}/notes", json=note_data)
+    assert create_response.status_code == 201
+
+    created_note = create_response.json()
+
+    response = requests.get(f"{BASE_URL}/tags/{unique_tag}/notes")
+
+    assert response.status_code == 200
+
+    notes = response.json()
+    note_ids = [note["id"] for note in notes]
+
+    assert created_note["id"] in note_ids
+
+    for note in notes:
+        assert unique_tag in note["tags"]
+
+
