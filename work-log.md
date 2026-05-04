@@ -225,8 +225,14 @@ Homework:
 
 #### 1. ✅ What did I accomplish?
 
-
-
+-Die Datei `test_notes.py` wurde als zentrale Testdatei für die Abgabe erstellt.
+-Der FastAPI-Server wurde mit `uv run fastapi dev main_day_4.py` gestartet und der Endpoint `GET /notes` zuerst manuell mit `curl` überprüft.
+-Alle Tests wurden mit `uv run pytest test_notes.py -v` erfolgreich ausgeführt.
+-Die Day-4-Homework wurde weitergeführt und automatische Tests für die Notes-API wurden in `test_notes.py` geschrieben.
+-Getestet wurden CRUD-Funktionen, Filterfunktionen, Error-Cases sowie die Day-3-Funktionen `GET /notes/stats` und `PATCH /notes/{id}`.
+-Als Bonus wurden zusätzlich Tests für die Tag-Endpunkte ergänzt.
+-Für eindeutige Testdaten wurde `uuid4` verwendet, damit die Tests nicht von alten oder doppelten Notes in der Datenbank abhängig sind.
+-Am Ende liefen alle 17 Tests erfolgreich mit `uv run pytest test_notes.py -v`.
 
 
 
@@ -234,9 +240,15 @@ Homework:
 
 #### 2. 🚧 What challenges did I face?
 
-
-
-
+-`pytest` war anfangs nicht im Projekt installiert, weshalb der Testbefehl zuerst mit einem Fehler abgebrochen ist.
+-Beim `PUT`-Test entstand ein Fehler, weil die API die Tags zwar korrekt zurückgegeben hat, aber in einer anderen Reihenfolge als im Test erwartet.
+-Ich habe Gemini gefragt, ob es in Python eine Möglichkeit gibt, eindeutige Testwerte automatisch zu erzeugen.
+-Dafür habe ich ungefähr folgenden Prompt verwendet:  
+  „Gibt es in Python eine einfache Möglichkeit, eindeutige Werte für Testdaten zu erzeugen, damit meine API-Tests nicht mit alten Daten in der Datenbank kollidieren?“
+-Dadurch bin ich auf `uuid4` aufmerksam geworden und habe diese Methode verwendet, um eindeutige Titel, Kategorien und Tags für die Tests zu erzeugen.
+-Beim Tag-Problem wurde nicht mehr die Reihenfolge geprüft, sondern ob dieselben Tags vorhanden sind.
+-Beim Statistik-Endpunkt wurde die Struktur der Antwort geprüft und nicht ein fester Zahlenwert.
+-Die Tests wurden Schritt für Schritt ausgeführt und Fehler einzeln behoben, bis alle 17 Tests erfolgreich waren.
 
 
 ---
@@ -244,6 +256,14 @@ Homework:
 #### 3. 💡 How did I overcome them?
 
 
+-Dann konnten die benötigten Pakete mit `uv add --dev pytest requests` installiert werden.
+-Um unabhängige Tests zu schreiben, wurde eine Hilfsfunktion erstellt, die mit `uuid4` immer eindeutige Testdaten erzeugt.
+-Dadurch greifen die Tests nicht auf bereits vorhandene Notes zurück, sondern erstellen ihre eigenen Daten während der Testausführung.
+-Der Fehler beim `PUT`-Test wurde gelöst, indem die Tag-Prüfung angepasst wurde:
+  - Statt `data["tags"] == updated_data["tags"]`
+  - wurde `set(data["tags"]) == set(updated_data["tags"])` verwendet.
+-Dadurch wird geprüft, ob dieselben Tags vorhanden sind, ohne dass die Reihenfolge eine Rolle spielt.
+-Nach der Anpassung wurden alle Tests erneut mit `uv run pytest test_notes.py -v` ausgeführt und die ersten Tests waren erfolgreich.
 
 
 
