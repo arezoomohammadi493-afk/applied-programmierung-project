@@ -180,6 +180,7 @@ Homework:
 
 -Der bisherige JSON-basierte Speicher wurde auf eine SQLite-Datenbank mit SQLModel umgestellt. Dafür wurden Datenbank-Modelle für Notes, Tags und die Verbindung zwischen Notes und Tags erstellt. Danach wurden die wichtigsten Endpoints Schritt für Schritt auf Datenbank-Sessions mit SessionDep umgebaut und getestet: POST, GET, PATCH, PUT, DELETE, /notes/stats, /categories und /categories/{category_name}/notes.
 
+-Task 6 wurde abgeschlossen, indem die bisherige JSON-Dateispeicherung vollständig durch eine SQLite-Datenbank mit SQLModel ersetzt wurde. Zusätzlich wurden Datenbank-Sessions mit SessionDep eingebaut und die Notes-, Tags-, Categories- und Statistics-Endpoints auf Datenbankabfragen umgestellt.
 
 ---
 
