@@ -1,6 +1,6 @@
 # Work Log
 
-**Student Name:** Arezoo Mohammadi
+**Arezoo Mohammadi** 
 
 Instructions: Fill out one log for each course day. Content to consider: Course Sessions + Assignment
 
@@ -273,7 +273,14 @@ Homework:
 ### Day 5
 
 #### 1. ✅ What did I accomplish?
-
+-Die Modelle NoteCreate und NoteUpdate mit strengeren Validierungsregeln erweitert.
+-Für title, content, category und tags Mindest- und Maximallängen festgelegt.
+-Eingaben automatisch bereinigt, z. B. Leerzeichen entfernt und category sowie tags in Kleinbuchstaben umgewandelt.
+-Bei tags zusätzlich doppelte Einträge entfernt und leere oder zu kurze Tags abgelehnt.
+-Eine Cross-Field-Validation ergänzt: Wenn die Kategorie work ist, muss auch der Tag work vorhanden sein.
+-Eine neue Testdatei test_validation.py erstellt.
+-Acht automatische Tests geschrieben, um gültige und ungültige Eingaben zu überprüfen.
+-Die Tests mit pytest ausgeführt und bestätigt, dass alle 8 Tests bestanden wurden.
 
 
 
@@ -282,7 +289,11 @@ Homework:
 ---
 
 #### 2. 🚧 What challenges did I face?
-
+-Am Anfang war nicht direkt klar, dass bei dieser Aufgabe keine neuen Endpunkte erstellt werden sollen, sondern die bestehenden Datenmodelle verbessert werden müssen.
+-Die Validierung mit Pydantic war anspruchsvoller als einfache if-Abfragen, weil einige Regeln direkt im Modell definiert werden mussten.
+-Besonders die Regel zwischen category und tags war schwieriger, weil sie nicht nur ein einzelnes Feld betrifft, sondern zwei Felder gleichzeitig.
+-Beim Testen war zunächst verwirrend, dass erfolgreiche Requests je nach Endpoint 200 oder 201 zurückgeben können.
+-Es musste klar unterschieden werden zwischen erfolgreichen Requests und fehlerhaften Eingaben, die zwingend den Statuscode 422 zurückgeben sollen.
 
 
 
@@ -291,7 +302,12 @@ Homework:
 ---
 
 #### 3. 💡 How did I overcome them?
-
+-Zuerst wurden die neuen Validierungsregeln manuell über Swagger UI getestet, um schnell zu sehen, ob ungültige Eingaben abgelehnt werden.
+-Danach wurden automatische Tests mit pytest geschrieben, damit die Ergebnisse reproduzierbar überprüft werden können.
+-Für einfache Feldregeln wurden field_validator verwendet, z. B. für category und tags.
+-Für die Regel, dass work-Notizen auch den Tag work brauchen, wurde ein model_validator verwendet, weil diese Regel von mehreren Feldern abhängt.
+-Die Tests wurden so angepasst, dass erfolgreiche Antworten sowohl 200 als auch 201 akzeptieren, ungültige Eingaben aber weiterhin strikt 422 liefern müssen.
+-Am Ende wurden alle Tests erneut ausgeführt und mit 8 passed erfolgreich bestätigt.
 
 
 
