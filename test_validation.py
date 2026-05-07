@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from main_day_5 import app
+from main_day_5 import app, TagDB
 
 client = TestClient(app)
 
@@ -131,3 +131,10 @@ def test_patch_rejects_empty_title():
     )
 
     assert response.status_code == 422
+
+def test_tag_name_rejects_uppercase():
+    tag = TagDB.model_validate({"name": "Sport"})
+
+    assert tag.name == "sport"
+    assert tag.name != "Sport"
+    

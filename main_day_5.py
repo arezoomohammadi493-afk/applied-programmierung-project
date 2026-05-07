@@ -51,6 +51,14 @@ class NoteCreate(BaseModel):
         description="List of lowercase tags",
         examples=[["work", "urgent"]],
     )
+    @field_validator("title")
+    @classmethod
+    def title_must_not_be_whitespace_only(cls, value: str) -> str:
+        if len(value.strip()) < 3:
+            raise ValueError("title must contain at least 3 non-whitespace characters")
+
+        return value
+    
 
     @field_validator("category", mode="before")
     @classmethod
@@ -97,7 +105,7 @@ class Note(BaseModel):
     title: str
     content: str
     category: str
-    tags: list[str] = []
+    tags: list[str] = PydanticField(default_factory=list)
     created_at: str
 
 class NoteResponse(BaseModel):
@@ -125,6 +133,17 @@ class NoteUpdate(BaseModel):
         pattern=r"^[a-z]+$",
     )
     tags: Optional[list[str]] = PydanticField(default=None, max_length=10)
+
+    @field_validator("title")
+    @classmethod
+    def title_must_not_be_whitespace_only(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+
+        if len(value.strip()) < 3:
+            raise ValueError("title must contain at least 3 non-whitespace characters")
+
+        return value
 
     @field_validator("category", mode="before")
     @classmethod
@@ -290,7 +309,7 @@ def migrate_json_to_db():
             seen_tags = set()
 
             for tag_name in note_data.get("tags", []):
-                tag_name_clean = tag_name.strip()
+                tag_name_clean = tag_name.strip().lower()
 
                 if not tag_name_clean or tag_name_clean in seen_tags:
                     continue
