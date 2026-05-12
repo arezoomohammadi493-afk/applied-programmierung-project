@@ -721,3 +721,4 @@ def query_parameters(param1: str = None, param2: int = None) -> dict:
         "param2": param2, 
         "namen": namen_gefiltert
     }
+

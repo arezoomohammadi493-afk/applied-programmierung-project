@@ -155,3 +155,6 @@ def delete_note(note_id: int):
         detail=f"Note with ID {note_id} not found"
     )
 
+
+
+
