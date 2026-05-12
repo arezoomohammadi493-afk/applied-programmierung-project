@@ -13,6 +13,18 @@ app = FastAPI(
     description="Simple note management API",
     version="1.0.0"
 )
+@app.get("/")
+def read_root():
+    return {
+        "message": "Notes API",
+        "version": "day-06",
+        "endpoints": [
+            "/notes",
+            "/notes/stats",
+            "/categories",
+            "/tags"
+        ]
+    }
 
 ####################################################################
 #### Note API Endpoints (Day 2)
@@ -91,13 +103,11 @@ class NoteCreate(BaseModel):
 
         return cleaned_tags
 
-    @model_validator(mode="after")
-    def work_notes_need_work_tag(self):
-        # This is a model validator because the rule depends on two fields:
-        # category and tags.
-        if self.category == "work" and "work" not in self.tags:
-            raise ValueError("work notes must include the 'work' tag")
-        return self
+    # @model_validator(mode="after")
+    # def work_notes_need_work_tag(self):
+    #     if self.category == "work" and "work" not in self.tags:
+    #         raise ValueError("work notes must include the 'work' tag")
+    #     return self
 
 
 class Note(BaseModel):
@@ -484,18 +494,24 @@ def list_notes(
     if tag:
         statement = statement.join(NoteDB.tags).where(TagDB.name == tag)
 
-    # Filter by creation date
-    if created_after:
-        statement = statement.where(
-            NoteDB.created_at >= datetime.fromisoformat(created_after)
-        )
+        # Filter by creation date
+    try:
+        if created_after:
+            created_after_dt = datetime.fromisoformat(created_after)
+            statement = statement.where(NoteDB.created_at >= created_after_dt)
 
-    if created_before:
-        statement = statement.where(
-            NoteDB.created_at <= datetime.fromisoformat(created_before)
+        if created_before:
+            created_before_dt = datetime.fromisoformat(created_before)
+            statement = statement.where(NoteDB.created_at <= created_before_dt)
+
+    except ValueError:
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid date format. Use ISO format like 2026-05-12"
         )
 
     notes = session.exec(statement).all()
+
 
     return [
         NoteResponse(
@@ -511,7 +527,7 @@ def list_notes(
 
 
 @app.get("/notes/stats")
-def get_note_stats():
+def get_note_stats(session: SessionDep):
     """
     Get statistics about all notes:
     - total number of notes
@@ -519,34 +535,30 @@ def get_note_stats():
     - top 5 most used tags
     - number of unique tags
     """
-    notes_db, _ = load_notes()
-
-    total_notes = len(notes_db)
+    notes = session.exec(select(NoteDB)).all()
+    all_tags = session.exec(select(TagDB)).all()
 
     category_counter = Counter()
     tag_counter = Counter()
 
-    for note in notes_db:
-        # Count categories
+    for note in notes:
         category_counter[note.category] += 1
 
-        # Count tags
         for tag in note.tags:
-            tag_counter[tag] += 1
+            tag_counter[tag.name] += 1
 
-    top_tags = []
+    top_tags = [
+        {"tag": tag, "count": count}
+        for tag, count in tag_counter.most_common(5)
+    ]
 
-    for tag, count in tag_counter.most_common(5):
-        top_tags.append({
-            "tag": tag,
-            "count": count
-        })
+    unique_tag_names = set(tag.name for tag in all_tags)
 
     return {
-        "total_notes": total_notes,
+        "total_notes": len(notes),
         "by_category": dict(category_counter),
         "top_tags": top_tags,
-        "unique_tags_count": len(tag_counter)
+        "unique_tags_count": len(unique_tag_names)
     }
 
 
@@ -646,8 +658,7 @@ def list_tags(session: SessionDep) -> list[str]:
     statement = select(TagDB)
     tags = session.exec(statement).all()
 
-    return sorted([tag.name for tag in tags])
-
+    return sorted(set(tag.name for tag in tags))
 
 @app.get("/tags/{tag_name}/notes")
 def get_notes_by_tag(
@@ -655,8 +666,11 @@ def get_notes_by_tag(
     session: SessionDep
 ) -> list[NoteResponse]:
     """Get all notes with a specific tag"""
-    statement = select(TagDB).where(TagDB.name == tag_name)
+
+    normalized_tag_name = tag_name.strip().lower()
+    statement = select(TagDB).where(TagDB.name == normalized_tag_name)    
     tag = session.exec(statement).first()
+
 
     if not tag:
         return []
