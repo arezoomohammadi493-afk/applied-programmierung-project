@@ -13,8 +13,11 @@ app = FastAPI(
     description="Simple note management API",
     version="1.0.0"
 )
+
+
 @app.get("/")
 def read_root():
+    # Startseite der API mit einer kurzen Übersicht über die wichtigsten Endpunkte.
     return {
         "message": "Notes API",
         "version": "day-06",
@@ -26,13 +29,17 @@ def read_root():
         ]
     }
 
+
 ####################################################################
 #### Note API Endpoints (Day 2)
 ####################################################################
 
+# Erlaubte Kategorien, die beim Erstellen und Bearbeiten von Notizen akzeptiert werden.
 ALLOWED_CATEGORIES = {"work", "personal", "school", "ideas", "general"}
 
+
 class NoteCreate(BaseModel):
+    # Eingabemodell für neue Notizen mit Validierungsregeln.
     model_config = ConfigDict(
         str_strip_whitespace=True,
         extra="forbid",
@@ -63,6 +70,7 @@ class NoteCreate(BaseModel):
         description="List of lowercase tags",
         examples=[["work", "urgent"]],
     )
+
     @field_validator("title")
     @classmethod
     def title_must_not_be_whitespace_only(cls, value: str) -> str:
@@ -70,11 +78,11 @@ class NoteCreate(BaseModel):
             raise ValueError("title must contain at least 3 non-whitespace characters")
 
         return value
-    
 
     @field_validator("category", mode="before")
     @classmethod
     def normalize_category(cls, value: str) -> str:
+        # Kategorie vereinheitlichen, bevor geprüft wird, ob sie erlaubt ist.
         value = value.strip().lower()
         if value not in ALLOWED_CATEGORIES:
             raise ValueError(f"category must be one of {sorted(ALLOWED_CATEGORIES)}")
@@ -83,6 +91,7 @@ class NoteCreate(BaseModel):
     @field_validator("tags")
     @classmethod
     def clean_tags(cls, raw_tags: list[str]) -> list[str]:
+        # Tags bereinigen: Leerzeichen entfernen, Kleinschreibung erzwingen und Duplikate vermeiden.
         cleaned_tags: list[str] = []
         seen_tags: set[str] = set()
 
@@ -103,6 +112,8 @@ class NoteCreate(BaseModel):
 
         return cleaned_tags
 
+    # Optionale Validierungsregel aus der Übung:
+    # Notizen der Kategorie "work" könnten zusätzlich das Tag "work" verlangen.
     # @model_validator(mode="after")
     # def work_notes_need_work_tag(self):
     #     if self.category == "work" and "work" not in self.tags:
@@ -111,6 +122,7 @@ class NoteCreate(BaseModel):
 
 
 class Note(BaseModel):
+    # Datenmodell für eine Notiz, das von älteren Hilfsfunktionen genutzt wird.
     id: int
     title: str
     content: str
@@ -118,7 +130,9 @@ class Note(BaseModel):
     tags: list[str] = PydanticField(default_factory=list)
     created_at: str
 
+
 class NoteResponse(BaseModel):
+    # Antwortmodell, das nach Datenbankoperationen an den Client zurückgegeben wird.
     id: int
     title: str
     content: str
@@ -128,7 +142,9 @@ class NoteResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class NoteUpdate(BaseModel):
+    # Eingabemodell für PATCH-Anfragen, bei denen alle Felder optional sind.
     model_config = ConfigDict(
         str_strip_whitespace=True,
         extra="forbid",
@@ -193,14 +209,16 @@ class NoteUpdate(BaseModel):
             cleaned_tags.append(cleaned_tag)
 
         return cleaned_tags
-    
 
+
+# Verbindungstabelle für die Many-to-Many-Beziehung zwischen Notizen und Tags.
 class NoteTagLink(SQLModel, table=True):
     note_id: Optional[int] = Field(default=None, foreign_key="notes.id", primary_key=True)
     tag_id: Optional[int] = Field(default=None, foreign_key="tags.id", primary_key=True)
 
 
 class NoteDB(SQLModel, table=True):
+    # Datenbanktabelle für die gespeicherten Notizen.
     __tablename__ = "notes"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -213,6 +231,7 @@ class NoteDB(SQLModel, table=True):
 
 
 class TagDB(SQLModel, table=True):
+    # Datenbanktabelle für Tags. Jeder Tagname ist eindeutig.
     __tablename__ = "tags"
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -241,12 +260,14 @@ def create_db_and_tables():
     """Create database tables"""
     SQLModel.metadata.create_all(engine)
 
+
 def get_session():
     """Create a new database session for each request"""
     with Session(engine) as session:
         yield session
 
 
+# Wiederverwendbare Dependency für Endpunkte, die eine Datenbanksession benötigen.
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
@@ -262,8 +283,8 @@ def db_note_to_note(note_db: NoteDB) -> Note:
     )
 
 
-
 NOTES_FILE = Path("data/notes.json")
+
 
 def migrate_json_to_db():
     """Migrate existing notes from JSON file to SQLite database"""
@@ -275,6 +296,7 @@ def migrate_json_to_db():
     with open(NOTES_FILE, "r", encoding="utf-8") as file:
         data = json.load(file)
 
+    # Unterstützt alte JSON-Daten sowohl als direkte Liste als auch als Dictionary mit "notes".
     if isinstance(data, dict):
         json_notes = data.get("notes", [])
     elif isinstance(data, list):
@@ -305,6 +327,7 @@ def migrate_json_to_db():
                 created_at_value.isoformat()
             )
 
+            # Bereits migrierte Notizen werden übersprungen, damit keine Duplikate entstehen.
             if note_key in existing_keys:
                 continue
 
@@ -342,12 +365,12 @@ def migrate_json_to_db():
 
         session.commit()
 
+
 @app.on_event("startup")
 def on_startup():
     """Create database tables and migrate existing JSON notes"""
     create_db_and_tables()
     migrate_json_to_db()
-
 
 
 def load_notes():
@@ -374,7 +397,7 @@ def save_notes(notes: list[Note]):
     create_db_and_tables()
 
     with Session(engine) as session:
-        # Clear existing link table, notes and tags
+        # Bestehende Daten werden ersetzt, bevor die übergebene Notizenliste neu gespeichert wird.
         existing_notes = session.exec(select(NoteDB)).all()
         for note_db in existing_notes:
             session.delete(note_db)
@@ -385,7 +408,6 @@ def save_notes(notes: list[Note]):
 
         session.commit()
 
-        # Insert notes again
         for note in notes:
             note_db = NoteDB(
                 id=note.id,
@@ -429,6 +451,7 @@ def create_note(note: NoteCreate, session: SessionDep) -> NoteResponse:
     tag_objects = []
     seen_tags = set()
 
+    # Vorhandene Tags werden wiederverwendet, neue Tags werden bei Bedarf angelegt.
     for tag_name in note.tags:
         tag_name_clean = tag_name.strip()
 
@@ -463,6 +486,7 @@ def create_note(note: NoteCreate, session: SessionDep) -> NoteResponse:
         created_at=db_note.created_at.isoformat()
     )
 
+
 @app.get("/notes")
 def list_notes(
     session: SessionDep,
@@ -476,11 +500,9 @@ def list_notes(
 
     statement = select(NoteDB)
 
-    # Filter by category
     if category:
         statement = statement.where(NoteDB.category == category)
 
-    # Filter by search text in title or content
     if search:
         search_lower = search.lower()
         statement = statement.where(
@@ -490,11 +512,10 @@ def list_notes(
             )
         )
 
-    # Filter by tag
     if tag:
         statement = statement.join(NoteDB.tags).where(TagDB.name == tag)
 
-        # Filter by creation date
+    # Optionale Datumsfilter; ungültige Datumsangaben führen zu einem 422-Fehler.
     try:
         if created_after:
             created_after_dt = datetime.fromisoformat(created_after)
@@ -511,7 +532,6 @@ def list_notes(
         )
 
     notes = session.exec(statement).all()
-
 
     return [
         NoteResponse(
@@ -562,7 +582,6 @@ def get_note_stats(session: SessionDep):
     }
 
 
-
 @app.get("/categories")
 def list_categories(session: SessionDep) -> list[str]:
     """Get all unique categories from all notes"""
@@ -602,6 +621,7 @@ def get_notes_by_category_resource(
 @app.get("/notes/category/{category}")
 def get_notes_by_category(category: str) -> list[Note]:
     """Get all notes in a specific category"""
+    # Ältere Kategorien-Route, die noch über die Hilfsfunktion arbeitet.
     notes_db, _ = load_notes()
 
     filtered_notes = []
@@ -622,6 +642,8 @@ def get_note_stats(session: SessionDep):
     - top 5 most used tags
     - number of unique tags
     """
+    # Ältere zweite Variante des Statistik-Endpunkts.
+    # Für die finale Abgabe sollte nur eine Version von /notes/stats vorhanden sein.
     notes_db = session.exec(select(NoteDB)).all()
 
     total_notes = len(notes_db)
@@ -651,7 +673,6 @@ def get_note_stats(session: SessionDep):
     }
 
 
-
 @app.get("/tags")
 def list_tags(session: SessionDep) -> list[str]:
     """Get all unique tags from the Tag table"""
@@ -659,6 +680,7 @@ def list_tags(session: SessionDep) -> list[str]:
     tags = session.exec(statement).all()
 
     return sorted(set(tag.name for tag in tags))
+
 
 @app.get("/tags/{tag_name}/notes")
 def get_notes_by_tag(
@@ -668,9 +690,8 @@ def get_notes_by_tag(
     """Get all notes with a specific tag"""
 
     normalized_tag_name = tag_name.strip().lower()
-    statement = select(TagDB).where(TagDB.name == normalized_tag_name)    
+    statement = select(TagDB).where(TagDB.name == normalized_tag_name)
     tag = session.exec(statement).first()
-
 
     if not tag:
         return []
@@ -709,7 +730,6 @@ def get_note(note_id: int, session: SessionDep) -> NoteResponse:
     )
 
 
-
 @app.put("/notes/{note_id}")
 def update_note(
     note_id: int,
@@ -726,6 +746,7 @@ def update_note(
             detail=f"Note with ID {note_id} not found"
         )
 
+    # PUT ersetzt die komplette Notiz durch die neu gesendeten Daten.
     note.title = updated_note.title
     note.content = updated_note.content
     note.category = updated_note.category
@@ -784,6 +805,7 @@ def partial_update_note(
             detail=f"Note with ID {note_id} not found"
         )
 
+    # PATCH verändert nur die Felder, die in der Anfrage wirklich mitgeschickt wurden.
     if note_update.title is not None:
         note.title = note_update.title
 
@@ -850,27 +872,23 @@ def delete_note(note_id: int, session: SessionDep):
     return None
 
 
-
 @app.get("/queryparameters")
 def query_parameters(param1: str = None, param2: int = None) -> dict:
+    """
+    Example endpoint to demonstrate query parameters.
+
+    - param1: filters names by text
+    - param2: example integer parameter
+    """
 
     print("start query_parameters")
     print(param1, param2)
-    
-    """
-    Example endpoint to demostrate query parameters
 
-    - **param1**: A string parameter
-    - **param2**: An integer parameter
-
-    Returns a JSON onject with the provided parameters
-    
-    """
     namen = ['martin', 'sophia', 'michael', 'maryam', 'arezoo', 'armin']
 
     if not param1:
         return {"namen": namen}
-             
+
     namen_gefiltert = []
     for name in namen:
         if param1 and param1 in name:
@@ -878,7 +896,6 @@ def query_parameters(param1: str = None, param2: int = None) -> dict:
 
     return {
         "param1": param1,
-        "param2": param2, 
+        "param2": param2,
         "namen": namen_gefiltert
     }
-
