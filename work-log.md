@@ -56,13 +56,18 @@ _Explain how you overcame the challenges or what help you needed._
 
 #### 1. ✅ What did I accomplish?
 -Entwicklungsumgebung vorbereitet und die benötigten Tools kennengelernt: Git, VS Code und uv.
+
 -Erstes FastAPI-Projekt erstellt und eine main.py Datei angelegt.
+
 -FastAPI installiert und die App lokal mit uv run fastapi dev gestartet.
+
 -Erste API-Endpoints umgesetzt:
 - / für eine einfache Willkommensnachricht
 - /status für Statusinformationen der API
 - /about für Projektinformationen
+
 -Die API im Browser und über die automatische FastAPI-Dokumentation unter /docs getestet.
+
 -Homework-Endpoints ergänzt:
 - /square/{number} zur Berechnung einer Quadratzahl
 - /student zur Ausgabe meiner Studentendaten
@@ -72,16 +77,22 @@ _Explain how you overcame the challenges or what help you needed._
 
 #### 2. 🚧 What challenges did I face?
 -Am Anfang war noch unklar, wie eine API grundsätzlich funktioniert und wie ein Endpoint mit einer Python-Funktion verbunden wird.
+
 -Die Nutzung von uv und das Starten der FastAPI-App waren neu.
+
 -Ich musste verstehen, warum FastAPI automatisch Dokumentation unter /docs erstellt und wie man dort die Endpoints testet.
+
 -Bei den Pfadparametern wie {number} musste ich nachvollziehen, wie FastAPI den Wert aus der URL übernimmt und in der Funktion weiterverarbeitet.
 
 ---
 
 #### 3. 💡 How did I overcome them?
 -Die Beispiele aus der Vorlesung Schritt für Schritt nachvollzogen und zuerst die einfachen Basis-Endpoints umgesetzt.
+
 -Die App regelmäßig im Browser und in /docs getestet, um direkt zu sehen, ob die Rückgaben korrekt sind.
+
 -Die Homework-Aufgaben auf Grundlage der vorhandenen Templates erweitert und angepasst.
+
 -Durch wiederholtes Testen besser verstanden, wie FastAPI Requests verarbeitet und JSON-Antworten zurückgibt.
 
 ---
@@ -89,54 +100,54 @@ _Explain how you overcame the challenges or what help you needed._
 ### Day 2
 
 #### 1. ✅ What did I accomplish?
-- Ich habe die Note Taking API ab Step 10 weiterentwickelt und mehrere neue Endpoints erstellt und getestet.
+-Ich habe die Note Taking API ab Step 10 weiterentwickelt und mehrere neue Endpoints erstellt und getestet.
 
-- Ich habe `GET /notes/{note_id}` umgesetzt, damit man eine einzelne Note über ihre ID abrufen kann. Dabei habe ich Path Parameters in FastAPI geübt und getestet, dass nicht vorhandene IDs einen `404 Not Found` Fehler zurückgeben.
+-Ich habe `GET /notes/{note_id}` umgesetzt, damit man eine einzelne Note über ihre ID abrufen kann. Dabei habe ich Path Parameters in FastAPI geübt und getestet, dass nicht vorhandene IDs einen `404 Not Found` Fehler zurückgeben.
 
-- Ich habe File Persistence eingebaut, sodass Notes in `data/notes.json` gespeichert und nach einem Server-Neustart wieder geladen werden. Dafür habe ich `load_notes()` und `save_notes()` verwendet.
+-Ich habe File Persistence eingebaut, sodass Notes in `data/notes.json` gespeichert und nach einem Server-Neustart wieder geladen werden. Dafür habe ich `load_notes()` und `save_notes()` verwendet.
 
-- Ich habe das `category` Feld zu den Notes hinzugefügt. Dafür habe ich die Models `NoteCreate` und `Note` erweitert und `create_note()` angepasst, damit neue Notes auch eine Kategorie speichern.
+-Ich habe das `category` Feld zu den Notes hinzugefügt. Dafür habe ich die Models `NoteCreate` und `Note` erweitert und `create_note()` angepasst, damit neue Notes auch eine Kategorie speichern.
 
-- Ich habe den Endpoint `GET /notes/category/{category}` erstellt, um Notes nach Kategorie zu filtern, zum Beispiel alle Notes mit der Kategorie `study`.
+-Ich habe den Endpoint `GET /notes/category/{category}` erstellt, um Notes nach Kategorie zu filtern, zum Beispiel alle Notes mit der Kategorie `study`.
 
-- Ich habe den Endpoint `GET /notes/stats` erstellt, der die Gesamtzahl der Notes und die Anzahl der Notes pro Kategorie zurückgibt.
+-Ich habe den Endpoint `GET /notes/stats` erstellt, der die Gesamtzahl der Notes und die Anzahl der Notes pro Kategorie zurückgibt.
 
-- Ich habe als Extra Task den Endpoint `DELETE /notes/{note_id}` erstellt, damit Notes über ihre ID gelöscht werden können. Nach dem Löschen wird `data/notes.json` aktualisiert.
+-Ich habe als Extra Task den Endpoint `DELETE /notes/{note_id}` erstellt, damit Notes über ihre ID gelöscht werden können. Nach dem Löschen wird `data/notes.json` aktualisiert.
 
-- Ich habe alle Endpoints in Swagger UI `/docs` getestet: `POST /notes`, `GET /notes`, `GET /notes/{note_id}`, `GET /notes/category/{category}`, `GET /notes/stats` und `DELETE /notes/{note_id}`.
+-Ich habe alle Endpoints in Swagger UI `/docs` getestet: `POST /notes`, `GET /notes`, `GET /notes/{note_id}`, `GET /notes/category/{category}`, `GET /notes/stats` und `DELETE /notes/{note_id}`.
 
 
 ---
 
 #### 2. 🚧 What challenges did I face?
-- Eine Schwierigkeit war zu verstehen, an welcher Stelle neue Endpoints eingefügt werden müssen. Besonders wichtig war, dass `/notes/stats` und `/notes/category/{category}` vor `/notes/{note_id}` stehen müssen.
+-Eine Schwierigkeit war zu verstehen, an welcher Stelle neue Endpoints eingefügt werden müssen. Besonders wichtig war, dass `/notes/stats` und `/notes/category/{category}` vor `/notes/{note_id}` stehen müssen.
 
-- Ich hatte einen `IndentationError`, weil der Code unter `def get_note(...)` nicht richtig eingerückt war. Dadurch konnte der Server nicht starten.
+-Ich hatte einen `IndentationError`, weil der Code unter `def get_note(...)` nicht richtig eingerückt war. Dadurch konnte der Server nicht starten.
 
-- Ich hatte ein ID-Problem: Alle Notes hatten zuerst `id: 1`. Der Grund war ein falscher Variablenname beim ID-Counter in `load_notes()`.
+-Ich hatte ein ID-Problem: Alle Notes hatten zuerst `id: 1`. Der Grund war ein falscher Variablenname beim ID-Counter in `load_notes()`.
 
-- Neue Notes waren in VS Code nicht sofort in `notes.json` sichtbar. Später habe ich gemerkt, dass VS Code die geöffnete Datei nicht automatisch aktualisiert hatte.
+-Neue Notes waren in VS Code nicht sofort in `notes.json` sichtbar. Später habe ich gemerkt, dass VS Code die geöffnete Datei nicht automatisch aktualisiert hatte.
 
-- Nach dem Hinzufügen von `category` kam zuerst ein `500 Internal Server Error`, weil alte Notes in `data/notes.json` noch kein `category` Feld hatten.
+-Nach dem Hinzufügen von `category` kam zuerst ein `500 Internal Server Error`, weil alte Notes in `data/notes.json` noch kein `category` Feld hatten.
 
-- Beim DELETE Endpoint war zuerst unklar, dass ich mit `GET /notes` zuerst eine existierende ID suchen muss, bevor ich diese ID mit `DELETE /notes/{note_id}` löschen kann.
+-Beim DELETE Endpoint war zuerst unklar, dass ich mit `GET /notes` zuerst eine existierende ID suchen muss, bevor ich diese ID mit `DELETE /notes/{note_id}` löschen kann.
 
 
 ---
 
 #### 3. 💡 How did I overcome them?
 
-- Eine Schwierigkeit war zu verstehen, an welcher Stelle neue Endpoints eingefügt werden müssen. Besonders wichtig war, dass `/notes/stats` und `/notes/category/{category}` vor `/notes/{note_id}` stehen müssen.
+-Eine Schwierigkeit war zu verstehen, an welcher Stelle neue Endpoints eingefügt werden müssen. Besonders wichtig war, dass `/notes/stats` und `/notes/category/{category}` vor `/notes/{note_id}` stehen müssen.
 
-- Ich hatte einen `IndentationError`, weil der Code unter `def get_note(...)` nicht richtig eingerückt war. Dadurch konnte der Server nicht starten.
+-Ich hatte einen `IndentationError`, weil der Code unter `def get_note(...)` nicht richtig eingerückt war. Dadurch konnte der Server nicht starten.
 
-- Ich hatte ein ID-Problem: Alle Notes hatten zuerst `id: 1`. Der Grund war ein falscher Variablenname beim ID-Counter in `load_notes()`.
+-Ich hatte ein ID-Problem: Alle Notes hatten zuerst `id: 1`. Der Grund war ein falscher Variablenname beim ID-Counter in `load_notes()`.
 
-- Neue Notes waren in VS Code nicht sofort in `notes.json` sichtbar. Später habe ich gemerkt, dass VS Code die geöffnete Datei nicht automatisch aktualisiert hatte.
+-Neue Notes waren in VS Code nicht sofort in `notes.json` sichtbar. Später habe ich gemerkt, dass VS Code die geöffnete Datei nicht automatisch aktualisiert hatte.
 
-- Nach dem Hinzufügen von `category` kam zuerst ein `500 Internal Server Error`, weil alte Notes in `data/notes.json` noch kein `category` Feld hatten.
+-Nach dem Hinzufügen von `category` kam zuerst ein `500 Internal Server Error`, weil alte Notes in `data/notes.json` noch kein `category` Feld hatten.
 
-- Beim DELETE Endpoint war zuerst unklar, dass ich mit `GET /notes` zuerst eine existierende ID suchen muss, bevor ich diese ID mit `DELETE /notes/{note_id}` löschen kann.
+-Beim DELETE Endpoint war zuerst unklar, dass ich mit `GET /notes` zuerst eine existierende ID suchen muss, bevor ich diese ID mit `DELETE /notes/{note_id}` löschen kann.
 
 
 ---
@@ -231,12 +242,19 @@ Homework:
 #### 1. ✅ What did I accomplish?
 
 -Die Datei `test_notes.py` wurde als zentrale Testdatei für die Abgabe erstellt.
+
 -Der FastAPI-Server wurde mit `uv run fastapi dev main_day_4.py` gestartet und der Endpoint `GET /notes` zuerst manuell mit `curl` überprüft.
+
 -Alle Tests wurden mit `uv run pytest test_notes.py -v` erfolgreich ausgeführt.
+
 -Die Day-4-Homework wurde weitergeführt und automatische Tests für die Notes-API wurden in `test_notes.py` geschrieben.
+
 -Getestet wurden CRUD-Funktionen, Filterfunktionen, Error-Cases sowie die Day-3-Funktionen `GET /notes/stats` und `PATCH /notes/{id}`.
+
 -Als Bonus wurden zusätzlich Tests für die Tag-Endpunkte ergänzt.
+
 -Für eindeutige Testdaten wurde `uuid4` verwendet, damit die Tests nicht von alten oder doppelten Notes in der Datenbank abhängig sind.
+
 -Am Ende liefen alle 17 Tests erfolgreich mit `uv run pytest test_notes.py -v`.
 
 
@@ -246,13 +264,20 @@ Homework:
 #### 2. 🚧 What challenges did I face?
 
 -`pytest` war anfangs nicht im Projekt installiert, weshalb der Testbefehl zuerst mit einem Fehler abgebrochen ist.
+
 -Beim `PUT`-Test entstand ein Fehler, weil die API die Tags zwar korrekt zurückgegeben hat, aber in einer anderen Reihenfolge als im Test erwartet.
+
 -Ich habe Gemini gefragt, ob es in Python eine Möglichkeit gibt, eindeutige Testwerte automatisch zu erzeugen.
+
 -Dafür habe ich ungefähr folgenden Prompt verwendet:  
   „Gibt es in Python eine einfache Möglichkeit, eindeutige Werte für Testdaten zu erzeugen, damit meine API-Tests nicht mit alten Daten in der Datenbank kollidieren?“
+
 -Dadurch bin ich auf `uuid4` aufmerksam geworden und habe diese Methode verwendet, um eindeutige Titel, Kategorien und Tags für die Tests zu erzeugen.
+
 -Beim Tag-Problem wurde nicht mehr die Reihenfolge geprüft, sondern ob dieselben Tags vorhanden sind.
+
 -Beim Statistik-Endpunkt wurde die Struktur der Antwort geprüft und nicht ein fester Zahlenwert.
+
 -Die Tests wurden Schritt für Schritt ausgeführt und Fehler einzeln behoben, bis alle 17 Tests erfolgreich waren.
 
 
@@ -262,12 +287,17 @@ Homework:
 
 
 -Dann konnten die benötigten Pakete mit `uv add --dev pytest requests` installiert werden.
+
 -Um unabhängige Tests zu schreiben, wurde eine Hilfsfunktion erstellt, die mit `uuid4` immer eindeutige Testdaten erzeugt.
+
 -Dadurch greifen die Tests nicht auf bereits vorhandene Notes zurück, sondern erstellen ihre eigenen Daten während der Testausführung.
+
 -Der Fehler beim `PUT`-Test wurde gelöst, indem die Tag-Prüfung angepasst wurde:
   - Statt `data["tags"] == updated_data["tags"]`
   - wurde `set(data["tags"]) == set(updated_data["tags"])` verwendet.
+
 -Dadurch wird geprüft, ob dieselben Tags vorhanden sind, ohne dass die Reihenfolge eine Rolle spielt.
+
 -Nach der Anpassung wurden alle Tests erneut mit `uv run pytest test_notes.py -v` ausgeführt und die ersten Tests waren erfolgreich.
 
 
@@ -279,44 +309,48 @@ Homework:
 
 #### 1. ✅ What did I accomplish?
 -Die Modelle NoteCreate und NoteUpdate mit strengeren Validierungsregeln erweitert.
+
 -Für title, content, category und tags Mindest- und Maximallängen festgelegt.
+
 -Eingaben automatisch bereinigt, z. B. Leerzeichen entfernt und category sowie tags in Kleinbuchstaben umgewandelt.
+
 -Bei tags zusätzlich doppelte Einträge entfernt und leere oder zu kurze Tags abgelehnt.
+
 -Eine Cross-Field-Validation ergänzt: Wenn die Kategorie work ist, muss auch der Tag work vorhanden sein.
+
 -Eine neue Testdatei test_validation.py erstellt.
+
 -Acht automatische Tests geschrieben, um gültige und ungültige Eingaben zu überprüfen.
+
 -Die Tests mit pytest ausgeführt und bestätigt, dass alle 8 Tests bestanden wurden.
-
-
-
-
 
 ---
 
 #### 2. 🚧 What challenges did I face?
 -Am Anfang war nicht direkt klar, dass bei dieser Aufgabe keine neuen Endpunkte erstellt werden sollen, sondern die bestehenden Datenmodelle verbessert werden müssen.
+
 -Die Validierung mit Pydantic war anspruchsvoller als einfache if-Abfragen, weil einige Regeln direkt im Modell definiert werden mussten.
+
 -Besonders die Regel zwischen category und tags war schwieriger, weil sie nicht nur ein einzelnes Feld betrifft, sondern zwei Felder gleichzeitig.
+
 -Beim Testen war zunächst verwirrend, dass erfolgreiche Requests je nach Endpoint 200 oder 201 zurückgeben können.
+
 -Es musste klar unterschieden werden zwischen erfolgreichen Requests und fehlerhaften Eingaben, die zwingend den Statuscode 422 zurückgeben sollen.
-
-
-
-
 
 ---
 
 #### 3. 💡 How did I overcome them?
 -Zuerst wurden die neuen Validierungsregeln manuell über Swagger UI getestet, um schnell zu sehen, ob ungültige Eingaben abgelehnt werden.
+
 -Danach wurden automatische Tests mit pytest geschrieben, damit die Ergebnisse reproduzierbar überprüft werden können.
+
 -Für einfache Feldregeln wurden field_validator verwendet, z. B. für category und tags.
+
 -Für die Regel, dass work-Notizen auch den Tag work brauchen, wurde ein model_validator verwendet, weil diese Regel von mehreren Feldern abhängt.
+
 -Die Tests wurden so angepasst, dass erfolgreiche Antworten sowohl 200 als auch 201 akzeptieren, ungültige Eingaben aber weiterhin strikt 422 liefern müssen.
+
 -Am Ende wurden alle Tests erneut ausgeführt und mit 8 passed erfolgreich bestätigt.
-
-
-
-
 
 ---
 
@@ -324,31 +358,35 @@ Homework:
 
 #### 1. ✅ What did I accomplish?
 -Die offizielle Test-Suite für die Notes API in mein Projekt integriert und mit pytest ausgeführt.
--Einen fehlenden Root-Endpunkt / ergänzt, damit die API eine einfache Metadata-Antwort zurückgibt und nicht mehr mit 404 antwortet.
--Die Filterlogik für created_after und created_before verbessert, sodass ungültige Datumswerte nicht mehr zu einem Serverfehler 500, sondern korrekt zu einem 422 Validation Error führen.
--Den /tags-Endpunkt angepasst, damit Tags sortiert und ohne Duplikate zurückgegeben werden.
--Den /notes/stats-Endpunkt von der alten JSON-basierten Logik auf die aktuelle SQLModel-Datenbanklogik umgestellt.
--Den Tag-Lookup für /tags/{tag_name}/notes vorbereitet bzw. angepasst, damit die Suche unabhängig von Groß- und Kleinschreibung funktioniert.
 
+-Einen fehlenden Root-Endpunkt / ergänzt, damit die API eine einfache Metadata-Antwort zurückgibt und nicht mehr mit 404 antwortet.
+
+-Die Filterlogik für created_after und created_before verbessert, sodass ungültige Datumswerte nicht mehr zu einem Serverfehler 500, sondern korrekt zu einem 422 Validation Error führen.
+
+-Den /tags-Endpunkt angepasst, damit Tags sortiert und ohne Duplikate zurückgegeben werden.
+
+-Den /notes/stats-Endpunkt von der alten JSON-basierten Logik auf die aktuelle SQLModel-Datenbanklogik umgestellt.
+
+-Den Tag-Lookup für /tags/{tag_name}/notes vorbereitet bzw. angepasst, damit die Suche unabhängig von Groß- und Kleinschreibung funktioniert.
 
 ---
 
 #### 2. 🚧 What challenges did I face?
 -Mehrere Testfehler hatten dieselbe Ursache, wodurch die Fehlerausgabe am Anfang sehr unübersichtlich wirkte.
+
 -Eine Schwierigkeit war, dass eine selbst ergänzte Zusatzregel die offiziellen Testdaten blockiert hat. Die Regel verlangte, dass jede Note mit der Kategorie `work` auch zwingend den Tag `work` enthalten muss. Dadurch war der Fehler nicht direkt ein Datenbankproblem, sondern ein zu strenges Validierungsproblem im Pydantic-Modell.
-
-
-
 
 
 ---
 
 #### 3. 💡 How did I overcome them?
 -Ich habe den Fehler über den Statuscode `422` analysiert und gesehen, dass die Anfrage nicht wegen der Datenbank, sondern wegen der Model-Validation abgelehnt wurde. Danach habe ich die zusätzliche Regel entfernt, weil sie nicht Teil der erwarteten API-Anforderungen der Test-Suite war.
--Die Fehler wurden nicht alle gleichzeitig bearbeitet, sondern Schritt für Schritt mit pytest -x, sodass immer nur der erste konkrete Fehler analysiert wurde.
--Für ungültige Datumswerte wurde eine gezielte Fehlerbehandlung mit try/except ValueError ergänzt, damit die API kontrolliert mit 422 reagiert.
--Die Endpunkte /tags, /tags/{tag_name}/notes und /notes/stats wurden an die Datenbankstruktur angepasst, damit die Ergebnisse konsistent, sortiert und testbar sind.
 
+-Die Fehler wurden nicht alle gleichzeitig bearbeitet, sondern Schritt für Schritt mit pytest -x, sodass immer nur der erste konkrete Fehler analysiert wurde.
+
+-Für ungültige Datumswerte wurde eine gezielte Fehlerbehandlung mit try/except ValueError ergänzt, damit die API kontrolliert mit 422 reagiert.
+
+-Die Endpunkte /tags, /tags/{tag_name}/notes und /notes/stats wurden an die Datenbankstruktur angepasst, damit die Ergebnisse konsistent, sortiert und testbar sind.
 
 ---
 
@@ -358,35 +396,45 @@ Homework:
 
 #### 1. ✅ What did I accomplish?
 -Streamlit installiert, um ein einfaches Frontend mit API-Anfragen zu erstellen.
+
 -Eine frontend.py erstellt und zuerst mit einer einfachen Hello World App getestet.
+
 -Eine kleine Say no App gebaut:
 - Button in Streamlit erstellt.
 - Beim Klick wird eine externe API angefragt.
 - Die Antwort wird im Frontend angezeigt.
+
 -Danach das Frontend mit meiner eigenen FastAPI-Notes-API verbunden:
 - Alle Notizen über GET /notes geladen.
 - Titel der Notizen in einem Dropdown angezeigt.
 - Nach Auswahl werden Inhalt, Kategorie und Tags angezeigt.
+
 -Ein Formular zum Erstellen neuer Notizen eingebaut:
 - Titel
 - Inhalt
 - Kategorie
 - Tags
+
 -Eine neue Notiz über das Frontend erstellt und geprüft, ob sie danach in der Notizliste auftaucht.
 
 ---
 
 #### 2. 🚧 What challenges did I face?
 -Beim Erstellen einer neuen Notiz wurde zuerst ein Fehler angezeigt, weil die Kategorie Bewegung vom Backend nicht akzeptiert wurde.
+
 -Das Backend erlaubt nur bestimmte Kategorien wie general, ideas, personal, school und work.
+
 -Außerdem mussten FastAPI und Streamlit gleichzeitig laufen, damit das Frontend mit dem Backend kommunizieren kann.
 
 ---
 
 #### 3. 💡 How did I overcome them?
 -Die Fehlermeldung vom Backend gelesen und verstanden, dass die Kategorie nicht erlaubt war.
+
 -Die Kategorie-Auswahl im Frontend angepasst, sodass nur gültige Kategorien verwendet werden.
+
 -Die Notiz danach mit der Kategorie personal erneut erstellt.
+
 -Anschließend geprüft, ob die neue Notiz in der Liste angezeigt wird.
 ---
 
@@ -394,8 +442,11 @@ Homework:
 
 #### 1. ✅ What did I accomplish?
 -Die Datei main_day_5.py in main.py umbenannt, damit das Projekt eine klare Hauptdatei für die FastAPI-Anwendung hat.
+
 -Das Repository etwas aufgeräumt und unnötige bzw. alte Dateien kontrolliert.
+
 -Überprüft, ob alle wichtigen Dateien für die Bewertung im Repository vorhanden sind.
+
 -Kontrolliert, ob die bisher implementierten Funktionen weiterhin in der richtigen Datei liegen und für die Abgabe auffindbar sind.
 
 ---
