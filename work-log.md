@@ -55,29 +55,34 @@ _Explain how you overcame the challenges or what help you needed._
 ### Day 1
 
 #### 1. ✅ What did I accomplish?
-
-
-
-
-
+-Entwicklungsumgebung vorbereitet und die benötigten Tools kennengelernt: Git, VS Code und uv.
+-Erstes FastAPI-Projekt erstellt und eine main.py Datei angelegt.
+-FastAPI installiert und die App lokal mit uv run fastapi dev gestartet.
+-Erste API-Endpoints umgesetzt:
+- / für eine einfache Willkommensnachricht
+- /status für Statusinformationen der API
+- /about für Projektinformationen
+-Die API im Browser und über die automatische FastAPI-Dokumentation unter /docs getestet.
+-Homework-Endpoints ergänzt:
+- /square/{number} zur Berechnung einer Quadratzahl
+- /student zur Ausgabe meiner Studentendaten
+- /double/{number} zur Verdopplung einer Zahl
 
 ---
 
 #### 2. 🚧 What challenges did I face?
-
-
-
-
-
+-Am Anfang war noch unklar, wie eine API grundsätzlich funktioniert und wie ein Endpoint mit einer Python-Funktion verbunden wird.
+-Die Nutzung von uv und das Starten der FastAPI-App waren neu.
+-Ich musste verstehen, warum FastAPI automatisch Dokumentation unter /docs erstellt und wie man dort die Endpoints testet.
+-Bei den Pfadparametern wie {number} musste ich nachvollziehen, wie FastAPI den Wert aus der URL übernimmt und in der Funktion weiterverarbeitet.
 
 ---
 
 #### 3. 💡 How did I overcome them?
-
-
-
-
-
+-Die Beispiele aus der Vorlesung Schritt für Schritt nachvollzogen und zuerst die einfachen Basis-Endpoints umgesetzt.
+-Die App regelmäßig im Browser und in /docs getestet, um direkt zu sehen, ob die Rückgaben korrekt sind.
+-Die Homework-Aufgaben auf Grundlage der vorhandenen Templates erweitert und angepasst.
+-Durch wiederholtes Testen besser verstanden, wie FastAPI Requests verarbeitet und JSON-Antworten zurückgibt.
 
 ---
 
@@ -352,90 +357,48 @@ Homework:
 ### Day 7
 
 #### 1. ✅ What did I accomplish?
-
-
-
-
-
+-Streamlit installiert, um ein einfaches Frontend mit API-Anfragen zu erstellen.
+-Eine frontend.py erstellt und zuerst mit einer einfachen Hello World App getestet.
+-Eine kleine Say no App gebaut:
+- Button in Streamlit erstellt.
+- Beim Klick wird eine externe API angefragt.
+- Die Antwort wird im Frontend angezeigt.
+-Danach das Frontend mit meiner eigenen FastAPI-Notes-API verbunden:
+- Alle Notizen über GET /notes geladen.
+- Titel der Notizen in einem Dropdown angezeigt.
+- Nach Auswahl werden Inhalt, Kategorie und Tags angezeigt.
+-Ein Formular zum Erstellen neuer Notizen eingebaut:
+- Titel
+- Inhalt
+- Kategorie
+- Tags
+-Eine neue Notiz über das Frontend erstellt und geprüft, ob sie danach in der Notizliste auftaucht.
 
 ---
 
 #### 2. 🚧 What challenges did I face?
-
-
-
-
-
+-Beim Erstellen einer neuen Notiz wurde zuerst ein Fehler angezeigt, weil die Kategorie Bewegung vom Backend nicht akzeptiert wurde.
+-Das Backend erlaubt nur bestimmte Kategorien wie general, ideas, personal, school und work.
+-Außerdem mussten FastAPI und Streamlit gleichzeitig laufen, damit das Frontend mit dem Backend kommunizieren kann.
 
 ---
 
 #### 3. 💡 How did I overcome them?
-
-
-
-
-
-
+-Die Fehlermeldung vom Backend gelesen und verstanden, dass die Kategorie nicht erlaubt war.
+-Die Kategorie-Auswahl im Frontend angepasst, sodass nur gültige Kategorien verwendet werden.
+-Die Notiz danach mit der Kategorie personal erneut erstellt.
+-Anschließend geprüft, ob die neue Notiz in der Liste angezeigt wird.
 ---
 
 ### Day 8
 
 #### 1. ✅ What did I accomplish?
-
-
-
-
-
-
----
-
-#### 2. 🚧 What challenges did I face?
-
-
-
-
-
+-Die Datei main_day_5.py in main.py umbenannt, damit das Projekt eine klare Hauptdatei für die FastAPI-Anwendung hat.
+-Das Repository etwas aufgeräumt und unnötige bzw. alte Dateien kontrolliert.
+-Überprüft, ob alle wichtigen Dateien für die Bewertung im Repository vorhanden sind.
+-Kontrolliert, ob die bisher implementierten Funktionen weiterhin in der richtigen Datei liegen und für die Abgabe auffindbar sind.
 
 ---
-
-#### 3. 💡 How did I overcome them?
-
-
-
-
-
-
----
-
-### Day 9
-
-#### 1. ✅ What did I accomplish?
-
-
-
-
-
-
----
-
-#### 2. 🚧 What challenges did I face?
-
-
-
-
-
-
----
-
-#### 3. 💡 How did I overcome them?
-
-
-
-
-
-
----
-
 
 # 🎉 Congratulations! You did it! 🎓✨
 
