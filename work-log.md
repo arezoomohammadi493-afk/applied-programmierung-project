@@ -318,16 +318,19 @@ Homework:
 ### Day 6
 
 #### 1. ✅ What did I accomplish?
-
-
-
-
+-Die offizielle Test-Suite für die Notes API in mein Projekt integriert und mit pytest ausgeführt.
+-Einen fehlenden Root-Endpunkt / ergänzt, damit die API eine einfache Metadata-Antwort zurückgibt und nicht mehr mit 404 antwortet.
+-Die Filterlogik für created_after und created_before verbessert, sodass ungültige Datumswerte nicht mehr zu einem Serverfehler 500, sondern korrekt zu einem 422 Validation Error führen.
+-Den /tags-Endpunkt angepasst, damit Tags sortiert und ohne Duplikate zurückgegeben werden.
+-Den /notes/stats-Endpunkt von der alten JSON-basierten Logik auf die aktuelle SQLModel-Datenbanklogik umgestellt.
+-Den Tag-Lookup für /tags/{tag_name}/notes vorbereitet bzw. angepasst, damit die Suche unabhängig von Groß- und Kleinschreibung funktioniert.
 
 
 ---
 
 #### 2. 🚧 What challenges did I face?
-
+-Mehrere Testfehler hatten dieselbe Ursache, wodurch die Fehlerausgabe am Anfang sehr unübersichtlich wirkte.
+-Eine Schwierigkeit war, dass eine selbst ergänzte Zusatzregel die offiziellen Testdaten blockiert hat. Die Regel verlangte, dass jede Note mit der Kategorie `work` auch zwingend den Tag `work` enthalten muss. Dadurch war der Fehler nicht direkt ein Datenbankproblem, sondern ein zu strenges Validierungsproblem im Pydantic-Modell.
 
 
 
@@ -336,10 +339,10 @@ Homework:
 ---
 
 #### 3. 💡 How did I overcome them?
-
-
-
-
+-Ich habe den Fehler über den Statuscode `422` analysiert und gesehen, dass die Anfrage nicht wegen der Datenbank, sondern wegen der Model-Validation abgelehnt wurde. Danach habe ich die zusätzliche Regel entfernt, weil sie nicht Teil der erwarteten API-Anforderungen der Test-Suite war.
+-Die Fehler wurden nicht alle gleichzeitig bearbeitet, sondern Schritt für Schritt mit pytest -x, sodass immer nur der erste konkrete Fehler analysiert wurde.
+-Für ungültige Datumswerte wurde eine gezielte Fehlerbehandlung mit try/except ValueError ergänzt, damit die API kontrolliert mit 422 reagiert.
+-Die Endpunkte /tags, /tags/{tag_name}/notes und /notes/stats wurden an die Datenbankstruktur angepasst, damit die Ergebnisse konsistent, sortiert und testbar sind.
 
 
 ---
